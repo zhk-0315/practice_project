@@ -74,6 +74,7 @@ static int RecycleResource(void)
 int main(int argc, char const* argv[])
 {
     ConfigPreInit();
+    LocalDbgout("start server");
     InitModules();
 
     while (1) {

@@ -1,8 +1,10 @@
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "dbgout.h"
 #include "pre_process.h"
+#include "safe_api.h"
 
 LogOp* GetClientLogFile(void)
 {
@@ -13,8 +15,9 @@ LogOp* GetClientLogFile(void)
     };
 
     if (logFile.logFp == NULL) {
-        char* s = "/data/zkdata/local/zklog/udpcli.log";
-        strcpy(logFile.filePath, s);
+        char* s = LCget_current_dir_name();
+        sprintf(logFile.filePath, "%s/logudpsrv.log", s);
+        free(s);
     }
 
     return &logFile;

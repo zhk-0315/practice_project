@@ -31,13 +31,11 @@ static void AddFdToSrvEpollWithFd(int fd, uint32_t eventsMask)
 
 int InitServerEpoll(void)
 {
-    int lcfd = 0;
-
     if (FD_CHECK(g_epFd))
         return 0;
 
-    lcfd = epoll_create1(EPOLL_CLOEXEC);
-    CHECK_FUNCRET_ERR(lcfd, -1, "epoll_create1 lcfd error");
+    g_epFd = epoll_create1(EPOLL_CLOEXEC);
+    CHECK_FUNCRET_ERR(g_epFd, -1, "epoll_create1 lcfd error");
 
     return 0;
 }
