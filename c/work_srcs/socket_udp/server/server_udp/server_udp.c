@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #include "pre_process.h"
+#include "server_lcmsgqueue.h"
 #include "server_udp.h"
 
 SrvUdp* GetSrvUdp(void)
@@ -50,4 +51,26 @@ int DestorySrvUdp(void)
         return -1;
 
     return close(GetSrvUdp()->udpFd);
+}
+
+static void* ProcessStdin(void* arg)
+{
+    size_t RxSize = 0;
+    int fd = *(int*)arg;
+    unsigned char RxData[LCMSG_DATA_MAXLEN] = { 0 };
+
+    RxSize = read(fd, RxData, LCMSG_DATA_MAXLEN);
+    if (RxSize == -1) {
+        LocalDbgout("read fd(%d) error!", fd);
+        return NULL;
+    } else if (RxSize == 0) {
+        return arg;
+    }
+    
+    return arg;
+}
+
+static void* PorcessUdpMsg(void* arg)
+{
+    return arg;
 }

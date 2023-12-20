@@ -50,26 +50,10 @@ int DestoryServerEpoll(void)
     return close(g_epFd);
 }
 
-static void* ProcessStdin(void* arg)
-{
-    size_t RxSize = 0;
-
-    
-
-    RxSize = read(STDIN_FILENO, void buf[.count], size_t count);
-
-
-    return arg;
-}
-
-static void* PorcessUdpMsg(void* arg)
-{
-    return arg;
-}
-
 static void* ServerEpollThread(void* arg)
 {
     register int i = 0;
+    int fd = 0;
     int triggeCnt = 0;
     pthread_t tid = pthread_self();
     struct epoll_event triggeEvents[MAXEVENTS] = { 0 };
@@ -92,9 +76,9 @@ static void* ServerEpollThread(void* arg)
 
         for (i = 0; i < triggeCnt; i++) {
             if (triggeEvents[i].data.fd == STDIN_FILENO) {
-                AddTaskToServerPool(ProcessStdin, NULL);
+                AddTaskToServerPool(ProcessStdin, (void*)&triggeEvents[i].data.fd);
             } else if (triggeEvents[i].data.fd == GetSrvUdp()->udpFd) {
-                AddTaskToServerPool(PorcessUdpMsg, NULL);
+                AddTaskToServerPool(PorcessUdpMsg, (void*)&triggeEvents[i].data.fd);
             }
         }
     }

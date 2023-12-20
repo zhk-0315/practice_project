@@ -12,5 +12,7 @@ typedef struct SrvUdp {
 SrvUdp* GetSrvUdp(void);
 int InitSrvUdp(void);
 int DestorySrvUdp(void);
+static void* ProcessStdin(void* arg);
+static void* PorcessUdpMsg(void* arg);
 
 #endif
