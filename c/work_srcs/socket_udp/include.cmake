@@ -47,7 +47,7 @@ add_compile_options(
     -O0
     -g
     -Wall
-    #-Werror
+    -Werror
 )
 
 add_compile_definitions(

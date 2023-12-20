@@ -8,7 +8,7 @@
 
 static SrvMsgQueue* g_srvMsgQueue = NULL;
 
-static int InitServerQueue(void)
+static int InitSrvMsgQueue(void)
 {
     if (g_srvMsgQueue != NULL)
         return 0;
@@ -43,7 +43,7 @@ int EnSrvMsgQueue(const LcMsg* _lcMsg)
     int ret = 0;
 
     if (!g_srvMsgQueue)
-        InitServerQueue();
+        InitSrvMsgQueue();
 
     pthread_mutex_lock(&g_srvMsgQueue->mutex);
     ret = EnMsgQueue(g_srvMsgQueue->queue, _lcMsg);
@@ -57,7 +57,7 @@ int DeSrvMsgQueue(LcMsg* _lcMsg)
     int ret = 0;
 
     if (!g_srvMsgQueue)
-        InitServerQueue();
+        InitSrvMsgQueue();
 
     pthread_mutex_lock(&g_srvMsgQueue->mutex);
     ret = DeMsgQueue(g_srvMsgQueue->queue, _lcMsg);

@@ -19,7 +19,7 @@ typedef struct CLisInfoList {
 
 int DestoryCliInfoList(void);
 void AddNodeToCliInfoList(EndID cliID, struct sockaddr_in* _addr);
-ClisInfoListNode* GetCliInfoNodeByCliID(EndID cliID);
 void DelCliInfoNodeFormListByCliID(EndID cliID);
+const ClisInfoListNode* GetCliInfoNodeByCliID(EndID cliID);
 
 #endif

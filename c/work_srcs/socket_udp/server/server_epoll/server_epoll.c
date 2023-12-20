@@ -51,7 +51,6 @@ int DestoryServerEpoll(void)
 static void* ServerEpollThread(void* arg)
 {
     register int i = 0;
-    int fd = 0;
     int triggeCnt = 0;
     pthread_t tid = pthread_self();
     struct epoll_event triggeEvents[MAXEVENTS] = { 0 };

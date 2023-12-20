@@ -120,7 +120,8 @@ int SendMsgToServer(void)
         if (LCstrcasestr((const char*)RxData, "zkquit"))
             break;
 
-        TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
+        if (TxBuf == NULL)
+            TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
         InitTxBuf(TxBuf, SETVER_ENDID);
         memcpy(TxBuf->msg.data, RxData, LCMSG_DATA_MAXLEN);
         AddTaskToClientPool(SendMsgBufToServer, TxBuf);
@@ -128,6 +129,8 @@ int SendMsgToServer(void)
     }
     LCclear();
 
+    if (TxBuf != NULL)
+        free(TxBuf);
     free(RxData);
 
     return 0;
@@ -158,7 +161,8 @@ int SendMsgToOtherClient(void)
         if (LCstrcasestr((const char*)RxData, "zkquit"))
             break;
 
-        TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
+        if (TxBuf == NULL)
+            TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
         InitTxBuf(TxBuf, remoteEndID);
         memcpy(TxBuf->msg.data, RxData, LCMSG_DATA_MAXLEN);
         AddTaskToClientPool(SendMsgBufToServer, TxBuf);
@@ -166,6 +170,8 @@ int SendMsgToOtherClient(void)
     }
     LCclear();
 
+    if (TxBuf != NULL)
+        free(TxBuf);
     free(RxData);
 
     return 0;

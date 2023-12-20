@@ -9,7 +9,7 @@
 
 static CLisInfoList* g_clisInfoList = NULL;
 
-int InitCliInfoList(void)
+static int InitCliInfoList(void)
 {
     if (g_clisInfoList)
         return 0;
@@ -26,6 +26,9 @@ int InitCliInfoList(void)
 int DestoryCliInfoList(void)
 {
     ClisInfoListNode* listNode = NULL;
+
+    if (!g_clisInfoList)
+        return 0;
 
     pthread_mutex_lock(&g_clisInfoList->mutex);
     while (!list_empty(g_clisInfoList->infoList)) {
@@ -45,6 +48,9 @@ void AddNodeToCliInfoList(EndID cliID, struct sockaddr_in* _addr)
 {
     ClisInfoListNode* listNode = NULL;
 
+    if (!g_clisInfoList)
+        InitCliInfoList();
+
     listNode = (ClisInfoListNode*)malloc(sizeof(ClisInfoListNode));
     listNode->cliID = cliID;
     memcpy(&listNode->addr, _addr, sizeof(struct sockaddr_in));
@@ -54,10 +60,13 @@ void AddNodeToCliInfoList(EndID cliID, struct sockaddr_in* _addr)
     pthread_mutex_unlock(&g_clisInfoList->mutex);
 }
 
-ClisInfoListNode* GetCliInfoNodeByCliID(EndID cliID)
+static ClisInfoListNode* __GetCliInfoNodeByCliID(EndID cliID)
 {
     ClisInfoListNode* listNode = NULL;
     struct list_head* pos = NULL;
+
+    if (!g_clisInfoList)
+        InitCliInfoList();
 
     pthread_mutex_lock(&g_clisInfoList->mutex);
     list_for_each(pos, g_clisInfoList->infoList)
@@ -77,11 +86,19 @@ void DelCliInfoNodeFormListByCliID(EndID cliID)
 {
     ClisInfoListNode* listNode = NULL;
 
-    listNode = GetCliInfoNodeByCliID(cliID);
+    if (!g_clisInfoList)
+        InitCliInfoList();
+
+    listNode = __GetCliInfoNodeByCliID(cliID);
 
     pthread_mutex_lock(&g_clisInfoList->mutex);
     list_del(&listNode->list);
     pthread_mutex_unlock(&g_clisInfoList->mutex);
 
     free(listNode);
+}
+
+const ClisInfoListNode* GetCliInfoNodeByCliID(EndID cliID)
+{
+    return (const ClisInfoListNode*)__GetCliInfoNodeByCliID(cliID);
 }
