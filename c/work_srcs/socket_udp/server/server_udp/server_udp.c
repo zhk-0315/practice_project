@@ -5,6 +5,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include "clientinfo_list.h"
 #include "pre_process.h"
 #include "server_lcmsgqueue.h"
 #include "server_udp.h"
@@ -77,17 +78,33 @@ void* ProcessStdin(void* arg)
 void* PorcessUdpMsg(void* arg)
 {
     size_t RxSize = 0;
+    size_t TxSize = 0;
     int fd = *(int*)arg;
-    LcMsg MsgBuf = { 0 };
+    LcMsg RxBuf = { 0 };
+    LcMsg TxBuf = { 0 };
     struct sockaddr_in sockaddr = { 0 };
 
-    RxSize = recvfrom(fd, &MsgBuf, sizeof(LcMsg), 0, (struct sockaddr*)&sockaddr,
+    RxSize = recvfrom(fd, &RxBuf, sizeof(LcMsg), 0, (struct sockaddr*)&sockaddr,
         (socklen_t*)&GetSrvUdp()->addrlen);
     if (RxSize == -1) {
         LocalDbgout("recvfrom fd(%d) error!", fd);
         return NULL;
     } else if (RxSize == 0) {
         return arg;
+    }
+
+    if (RxBuf.msg.msgType == SaveCliInfo
+        && RxBuf.msg.destEndID == GetModulesManager()->LcEndID) {
+        AddNodeToCliInfoList(RxBuf.msg.srcEndID, &sockaddr);
+
+        TxBuf.msg.msgType = SaveCliInfo;
+        TxBuf.msg.srcEndID = GetModulesManager()->LcEndID;
+        TxBuf.msg.destEndID = RxBuf.msg.srcEndID;
+        TxSize = sendto(GetSrvUdp()->udpFd, &TxBuf, sizeof(LcMsg), 0,
+            (struct sockaddr*)&sockaddr, GetSrvUdp()->addrlen);
+        CHECK_FUNCRET_SUC(TxSize, sizeof(LcMsg), "send to client init cliInfo error");
+    } else if (RxBuf.msg.msgType == DataMsg) {
+        EnSrvMsgQueue(&RxBuf);
     }
 
     return arg;

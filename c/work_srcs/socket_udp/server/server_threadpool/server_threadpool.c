@@ -8,13 +8,12 @@ static ThreadPool* g_srvThreadPool = NULL;
 
 int CreateServerThreadPool(void)
 {
-    if (g_srvThreadPool == NULL)
-        g_srvThreadPool = CreateThreadPool(5, 10);
-
-    if (g_srvThreadPool == NULL)
-        return -1;
-    else
+    if (g_srvThreadPool != NULL)
         return 0;
+
+    g_srvThreadPool = CreateThreadPool(5, 10);
+
+    return 0;
 }
 
 int DestoryServerThreadPool(void)

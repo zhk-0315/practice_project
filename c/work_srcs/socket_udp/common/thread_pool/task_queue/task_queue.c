@@ -16,6 +16,21 @@ struct list_head* InitTaskQueue(void)
     return taskQueue;
 }
 
+int DestoryTaskQueue(struct list_head** _taskQueue)
+{
+    struct list_head* taskQueue = *_taskQueue;
+
+    if (taskQueue == NULL)
+        return QUEUE_SUCCESS;
+
+    while (DeTaskQueue(taskQueue, NULL) != QUEUE_EMPTY) { }
+
+    free(taskQueue);
+    *_taskQueue = NULL;
+
+    return QUEUE_SUCCESS;
+}
+
 int EnTaskQueue(struct list_head* taskQueue, const Task* _task)
 {
     TaskNode* taskNode = NULL;
@@ -48,21 +63,6 @@ int DeTaskQueue(struct list_head* taskQueue, Task* _task)
 
     list_del(&taskNode->list);
     free(taskNode);
-
-    return QUEUE_SUCCESS;
-}
-
-int DestoryTaskQueue(struct list_head** _taskQueue)
-{
-    struct list_head* taskQueue = *_taskQueue;
-
-    if (taskQueue == NULL)
-        return QUEUE_SUCCESS;
-
-    while (DeTaskQueue(taskQueue, NULL) != QUEUE_EMPTY) { }
-
-    free(taskQueue);
-    *_taskQueue = NULL;
 
     return QUEUE_SUCCESS;
 }

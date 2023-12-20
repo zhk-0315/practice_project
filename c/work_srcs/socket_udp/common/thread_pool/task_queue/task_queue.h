@@ -3,7 +3,8 @@
 
 #include "list.h"
 
-#ifndef QUEUE_ERROR
+#ifndef SOCK_UDP_QUEUERET
+#define SOCK_UDP_QUEUERET
 #define QUEUE_ERROR (-1)
 enum {
     QUEUE_SUCCESS,

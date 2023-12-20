@@ -23,11 +23,10 @@ static void* ClientInterface(void* arg)
     LCpthread_setname_np(selfTid, "CliUI");
     pthread_detach(selfTid);
 
-#if 1
     while (Index++ < 5) {
-        pthread_mutex_lock(&GetFlagManager()->mutex);
-        boolTmp = GetFlagManager()->boolInitCliInfo;
-        pthread_mutex_unlock(&GetFlagManager()->mutex);
+        pthread_mutex_lock(&GetCliFlag()->mutex);
+        boolTmp = GetCliFlag()->boolInitCliInfo;
+        pthread_mutex_unlock(&GetCliFlag()->mutex);
         if (!boolTmp) {
             DisplayStr("being InitClientInfoToServer");
             InitClientInfoToServer();
@@ -36,9 +35,9 @@ static void* ClientInterface(void* arg)
     }
 
     while (1) {
-        pthread_mutex_lock(&GetFlagManager()->mutex);
-        boolTmp = GetFlagManager()->boolInitCliInfo;
-        pthread_mutex_unlock(&GetFlagManager()->mutex);
+        pthread_mutex_lock(&GetCliFlag()->mutex);
+        boolTmp = GetCliFlag()->boolInitCliInfo;
+        pthread_mutex_unlock(&GetCliFlag()->mutex);
         if (!boolTmp) {
             DisplayStr("InitClientInfoToServer error");
             sleep(1);
@@ -46,10 +45,6 @@ static void* ClientInterface(void* arg)
             break;
         }
     }
-#else
-    InitClientInfoToServer();
-    usleep(500000);
-#endif
 
     LCclear();
     while (1) {

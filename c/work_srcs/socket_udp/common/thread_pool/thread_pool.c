@@ -54,16 +54,15 @@ static void* ProcessTask(void* arg)
 
     while (1) {
         pthread_mutex_lock(&pool->mutex);
-
         while ((sRet = pool->DeTaskQueue(pool->taskQueue, &task_)) == QUEUE_EMPTY) {
             pthread_cond_wait(&pool->cond, &pool->mutex);
         }
-
-        if (sRet == QUEUE_SUCCESS)
-            pool->curTaskCnt--;
         pthread_mutex_unlock(&pool->mutex);
-        if (sRet == QUEUE_SUCCESS)
+
+        if (sRet == QUEUE_SUCCESS) {
+            pool->curTaskCnt--;
             task_.Handler(task_.arg);
+        }
     }
 
     return pool;
@@ -127,12 +126,11 @@ int DestoryThreadPool(ThreadPool** _threadPool)
     for (i = 0; i < pool->curThreadsCnt; i++) {
         pthread_cancel(pool->poolTids[i]);
     }
+    free(pool->poolTids);
     DestoryTaskQueue(&pool->taskQueue);
     pthread_mutex_unlock(&pool->mutex);
     pthread_mutex_destroy(&pool->mutex);
     pthread_cond_destroy(&pool->cond);
-
-    free(pool->poolTids);
     free(pool);
     *_threadPool = NULL;
 

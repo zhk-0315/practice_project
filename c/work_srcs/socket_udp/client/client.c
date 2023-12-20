@@ -15,34 +15,36 @@
 #include "pre_process.h"
 #include "safe_api.h"
 
-static Flag* g_flagManager = NULL;
+static CliFlag* g_cliFlag = NULL;
 
-static int InitFlagManager(void)
+static int InitCliFlag(void)
 {
-    if (g_flagManager == NULL) {
-        g_flagManager = (Flag*)malloc(sizeof(Flag));
-        pthread_mutex_init(&g_flagManager->mutex, NULL);
-        memset(g_flagManager, 0, sizeof(Flag));
-    }
+    if (g_cliFlag != NULL)
+        return 0;
+
+    g_cliFlag = (CliFlag*)malloc(sizeof(CliFlag));
+    pthread_mutex_init(&g_cliFlag->mutex, NULL);
+    memset(g_cliFlag, 0, sizeof(CliFlag));
 
     return 0;
 }
-static int DestoryFlagManager(void)
+static int DestoryCliFlag(void)
 {
-    if (g_flagManager != NULL) {
-        pthread_mutex_destroy(&g_flagManager->mutex);
-        free(g_flagManager);
-        g_flagManager = NULL;
-    }
+    if (g_cliFlag != NULL)
+        return 0;
+
+    pthread_mutex_destroy(&g_cliFlag->mutex);
+    free(g_cliFlag);
+    g_cliFlag = NULL;
 
     return 0;
 }
-Flag* GetFlagManager(void)
+CliFlag* GetCliFlag(void)
 {
-    if (g_flagManager == NULL)
-        InitFlagManager();
+    if (g_cliFlag == NULL)
+        InitCliFlag();
 
-    return g_flagManager;
+    return g_cliFlag;
 }
 
 static int InitModulesManager(void)
@@ -80,7 +82,7 @@ static int InitSignalsConfig(void)
 
 static int InitModules(void)
 {
-    InitFlagManager();
+    InitCliFlag();
     InitClientUdp();
 
     CreateClientThreadPool();
@@ -122,7 +124,7 @@ static int RecycleResource(void)
     DestoryClientThreadPool();
 
     DestoryCliUdp();
-    DestoryFlagManager();
+    DestoryCliFlag();
 
     return 0;
 }

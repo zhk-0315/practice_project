@@ -4,11 +4,11 @@
 #include <bits/pthreadtypes.h>
 #include <pthread.h>
 
-typedef struct Flag {
+typedef struct CliFlag {
     unsigned char boolInitCliInfo : 1;
     pthread_mutex_t mutex;
-} Flag;
+} CliFlag;
 
-Flag* GetFlagManager(void);
+CliFlag* GetCliFlag(void);
 
 #endif

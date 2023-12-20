@@ -6,15 +6,20 @@
 #include "lcmsg.h"
 #include "list.h"
 
-typedef struct CliInfoListNode {
+typedef struct ClisInfoListNode {
     EndID cliID;
     struct sockaddr_in addr;
     struct list_head list;
-} CliInfoListNode;
+} ClisInfoListNode;
+
+typedef struct CLisInfoList {
+    struct list_head* infoList;
+    pthread_mutex_t mutex;
+} CLisInfoList;
 
 int DestoryCliInfoList(void);
 void AddNodeToCliInfoList(EndID cliID, struct sockaddr_in* _addr);
-CliInfoListNode* GetCliInfoNodeByCliID(EndID cliID);
+ClisInfoListNode* GetCliInfoNodeByCliID(EndID cliID);
 void DelCliInfoNodeFormListByCliID(EndID cliID);
 
 #endif

@@ -4,13 +4,13 @@
 #include "lcmsg.h"
 #include "list.h"
 
-typedef struct lcMsgListNode {
+typedef struct lcMsgQueueNode {
     LcMsg lcMsg;
-    // list at the end
     struct list_head list;
-} lcMsgListNode;
+} lcMsgQueueNode;
 
-#ifndef QUEUE_ERROR
+#ifndef SOCK_UDP_QUEUERET
+#define SOCK_UDP_QUEUERET
 #define QUEUE_ERROR (-1)
 enum {
     QUEUE_SUCCESS,

@@ -8,15 +8,12 @@ static ThreadPool* g_cliThreadPool = NULL;
 
 int CreateClientThreadPool(void)
 {
-    if (g_cliThreadPool == NULL)
-        g_cliThreadPool = CreateThreadPool(2, 5);
-
-    DebugDgbout("leave");
-
-    if (g_cliThreadPool == NULL)
-        return -1;
-    else
+    if (g_cliThreadPool != NULL)
         return 0;
+
+    g_cliThreadPool = CreateThreadPool(2, 5);
+
+    return 0;
 }
 
 int DestoryClientThreadPool(void)

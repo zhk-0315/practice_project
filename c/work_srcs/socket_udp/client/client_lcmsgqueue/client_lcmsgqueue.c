@@ -6,46 +6,61 @@
 #include "lcmsg_queue.h"
 #include "list.h"
 
-static CliMsgQueueManager* manager = NULL;
+static CliMsgQueue* g_cliMsgQueue = NULL;
 
-static CliMsgQueueManager* InitCliMsgQueueManager(void)
+static int InitCliMsgQueue(void)
 {
-    manager = malloc(sizeof(CliMsgQueueManager));
-    manager->msgQueue = InitMsgQueue();
-    pthread_mutex_init(&manager->mutex, NULL);
-
-    return manager;
-}
-
-int DestoryCliMsgQueue(void)
-{
-    if (manager == NULL)
+    if (g_cliMsgQueue != NULL)
         return 0;
 
-    DestoryMsgQueue(&manager->msgQueue);
-    pthread_mutex_destroy(&manager->mutex);
-    free(manager);
-    manager = NULL;
+    g_cliMsgQueue = malloc(sizeof(CliMsgQueue));
+    g_cliMsgQueue->queue = InitMsgQueue();
+    pthread_mutex_init(&g_cliMsgQueue->mutex, NULL);
 
     return 0;
 }
 
-CliMsgQueueManager* GetCliMsgQueueManager(void)
+int DestoryCliMsgQueue(void)
 {
+    if (g_cliMsgQueue == NULL)
+        return 0;
 
-    if (manager == NULL) {
-        InitCliMsgQueueManager();
-    }
+    pthread_mutex_lock(&g_cliMsgQueue->mutex);
+    DestoryMsgQueue(&g_cliMsgQueue->queue);
+    free(g_cliMsgQueue->queue);
+    pthread_mutex_unlock(&g_cliMsgQueue->mutex);
+    pthread_mutex_destroy(&g_cliMsgQueue->mutex);
 
-    return manager;
+    free(g_cliMsgQueue);
+    g_cliMsgQueue = NULL;
+
+    return 0;
 }
 
-int CliEnMsgQueue(const LcMsg* _msg)
+int EnCliMsgQueue(const LcMsg* _msg)
 {
-    return EnMsgQueue(GetCliMsgQueueManager()->msgQueue, _msg);
+    int ret = 0;
+
+    if (g_cliMsgQueue == NULL)
+        InitCliMsgQueue();
+
+    pthread_mutex_lock(&g_cliMsgQueue->mutex);
+    ret = EnMsgQueue(g_cliMsgQueue->queue, _msg);
+    pthread_mutex_unlock(&g_cliMsgQueue->mutex);
+
+    return ret;
 }
 
-int CliDeMsgQueue(LcMsg* _msg)
+int DeCliMsgQueue(LcMsg* _msg)
 {
-    return DeMsgQueue(GetCliMsgQueueManager()->msgQueue, _msg);
+    int ret = 0;
+
+    if (g_cliMsgQueue == NULL)
+        InitCliMsgQueue();
+
+    pthread_mutex_lock(&g_cliMsgQueue->mutex);
+    ret = DeMsgQueue(g_cliMsgQueue->queue, _msg);
+    pthread_mutex_unlock(&g_cliMsgQueue->mutex);
+
+    return ret;
 }

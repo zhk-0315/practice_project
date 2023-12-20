@@ -19,23 +19,23 @@ struct list_head* InitMsgQueue(void)
 
 int EnMsgQueue(struct list_head* msgQueue, const LcMsg* _lcMsg)
 {
-    lcMsgListNode* msgNode = NULL;
+    lcMsgQueueNode* msgQueueNode = NULL;
 
     if (msgQueue == NULL)
         return QUEUE_ERROR;
 
-    msgNode = (lcMsgListNode*)malloc(sizeof(lcMsgListNode));
+    msgQueueNode = (lcMsgQueueNode*)malloc(sizeof(lcMsgQueueNode));
     if (_lcMsg != NULL)
-        msgNode->lcMsg = *_lcMsg;
+        msgQueueNode->lcMsg = *_lcMsg;
 
-    list_add_tail(&msgNode->list, msgQueue);
+    list_add_tail(&msgQueueNode->list, msgQueue);
 
     return QUEUE_SUCCESS;
 }
 
 int DeMsgQueue(struct list_head* msgQueue, LcMsg* _lcMsg)
 {
-    lcMsgListNode* msgNode = NULL;
+    lcMsgQueueNode* msgQueueNode = NULL;
 
     if (msgQueue == NULL)
         return QUEUE_ERROR;
@@ -43,12 +43,12 @@ int DeMsgQueue(struct list_head* msgQueue, LcMsg* _lcMsg)
     if (list_empty(msgQueue))
         return QUEUE_EMPTY;
 
-    msgNode = list_entry(msgQueue->next, lcMsgListNode, list);
+    msgQueueNode = list_entry(msgQueue->next, lcMsgQueueNode, list);
     if (_lcMsg != NULL)
-        *_lcMsg = msgNode->lcMsg;
+        *_lcMsg = msgQueueNode->lcMsg;
 
-    list_del(&msgNode->list);
-    free(msgNode);
+    list_del(&msgQueueNode->list);
+    free(msgQueueNode);
 
     return QUEUE_SUCCESS;
 }

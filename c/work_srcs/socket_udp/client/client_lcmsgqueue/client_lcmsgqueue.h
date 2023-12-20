@@ -5,14 +5,13 @@
 #include "list.h"
 #include <pthread.h>
 
-typedef struct CliMsgQueueManager {
-    struct list_head* msgQueue;
+typedef struct CliMsgQueue {
+    struct list_head* queue;
     pthread_mutex_t mutex;
-} CliMsgQueueManager;
+} CliMsgQueue;
 
 int DestoryCliMsgQueue(void);
-CliMsgQueueManager* GetCliMsgQueueManager(void);
-int CliEnMsgQueue(const LcMsg* _msg);
-int CliDeMsgQueue(LcMsg* _msg);
+int EnCliMsgQueue(const LcMsg* _msg);
+int DeCliMsgQueue(LcMsg* _msg);
 
 #endif
