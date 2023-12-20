@@ -1,0 +1,4 @@
+#ifndef COMMON__LOCAL_API__NORMAL_API_H
+#define COMMON__LOCAL_API__NORMAL_API_H
+
+#endif
