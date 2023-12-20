@@ -5,14 +5,14 @@
 
 typedef struct SrvUdp {
     int udpFd;
-    socklen_t addrlen;
+    const socklen_t addrlen;
     struct sockaddr_in LcAddr;
 } SrvUdp;
 
 SrvUdp* GetSrvUdp(void);
 int InitSrvUdp(void);
 int DestorySrvUdp(void);
-static void* ProcessStdin(void* arg);
-static void* PorcessUdpMsg(void* arg);
+void* ProcessStdin(void* arg);
+void* PorcessUdpMsg(void* arg);
 
 #endif

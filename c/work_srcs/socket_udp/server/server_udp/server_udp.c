@@ -1,6 +1,7 @@
 #include <asm-generic/socket.h>
 #include <netinet/in.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -10,7 +11,9 @@
 
 SrvUdp* GetSrvUdp(void)
 {
-    static SrvUdp udp = { 0 };
+    static SrvUdp udp = {
+        .addrlen = sizeof(struct sockaddr),
+    };
 
     return &udp;
 }
@@ -20,7 +23,6 @@ int InitSrvUdp(void)
     int udpfd = -1;
     int sRet = 0;
     const int ov = 1;
-    socklen_t addrlen = sizeof(struct sockaddr);
     struct sockaddr_in LcAddr = { 0 };
 
     if (FD_CHECK(GetSrvUdp()->udpFd))
@@ -35,12 +37,11 @@ int InitSrvUdp(void)
     LcAddr.sin_family = AF_INET;
     LcAddr.sin_addr.s_addr = INADDR_ANY;
     LcAddr.sin_port = htons(SERVER_PORT);
-    sRet = bind(udpfd, (const struct sockaddr*)&LcAddr, addrlen);
+    sRet = bind(udpfd, (const struct sockaddr*)&LcAddr, GetSrvUdp()->addrlen);
     CHECK_FUNCRET_ERR(sRet, -1, "setsockopt udpfd SO_REUSEADDR error");
 
     GetSrvUdp()->udpFd = udpfd;
     GetSrvUdp()->LcAddr = LcAddr;
-    GetSrvUdp()->addrlen = addrlen;
 
     return 0;
 }
@@ -53,24 +54,41 @@ int DestorySrvUdp(void)
     return close(GetSrvUdp()->udpFd);
 }
 
-static void* ProcessStdin(void* arg)
+void* ProcessStdin(void* arg)
 {
     size_t RxSize = 0;
     int fd = *(int*)arg;
-    unsigned char RxData[LCMSG_DATA_MAXLEN] = { 0 };
+    LcMsg MsgBuf = { 0 };
 
-    RxSize = read(fd, RxData, LCMSG_DATA_MAXLEN);
+    InitTxBuf(&MsgBuf, SETVER_ENDID);
+    RxSize = read(fd, MsgBuf.msg.data, LCMSG_DATA_MAXLEN);
     if (RxSize == -1) {
         LocalDbgout("read fd(%d) error!", fd);
         return NULL;
     } else if (RxSize == 0) {
         return arg;
     }
-    
+
+    EnSrvMsgQueue(&MsgBuf);
+
     return arg;
 }
 
-static void* PorcessUdpMsg(void* arg)
+void* PorcessUdpMsg(void* arg)
 {
+    size_t RxSize = 0;
+    int fd = *(int*)arg;
+    LcMsg MsgBuf = { 0 };
+    struct sockaddr_in sockaddr = { 0 };
+
+    RxSize = recvfrom(fd, &MsgBuf, sizeof(LcMsg), 0, (struct sockaddr*)&sockaddr,
+        (socklen_t*)&GetSrvUdp()->addrlen);
+    if (RxSize == -1) {
+        LocalDbgout("recvfrom fd(%d) error!", fd);
+        return NULL;
+    } else if (RxSize == 0) {
+        return arg;
+    }
+
     return arg;
 }
