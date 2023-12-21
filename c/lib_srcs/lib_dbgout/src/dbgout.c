@@ -7,7 +7,7 @@
 
 #include "dbgout.h"
 
-#if 1
+#if 0
 #define LCPRINTF(fmt, args...) \
     do {                       \
         printf(fmt, ##args);   \
