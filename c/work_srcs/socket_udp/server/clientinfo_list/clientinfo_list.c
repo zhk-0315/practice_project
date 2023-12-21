@@ -5,6 +5,7 @@
 
 #include "clientinfo_list.h"
 #include "list.h"
+#include "pre_process.h"
 #include "server_udp.h"
 
 static CLisInfoList* g_clisInfoList = NULL;
@@ -63,6 +64,7 @@ void AddNodeToCliInfoList(EndID cliID, struct sockaddr_in* _addr)
 static ClisInfoListNode* __GetCliInfoNodeByCliID(EndID cliID)
 {
     ClisInfoListNode* listNode = NULL;
+    ClisInfoListNode* tmpNode = NULL;
     struct list_head* pos = NULL;
 
     if (!g_clisInfoList)
@@ -71,15 +73,15 @@ static ClisInfoListNode* __GetCliInfoNodeByCliID(EndID cliID)
     pthread_mutex_lock(&g_clisInfoList->mutex);
     list_for_each(pos, g_clisInfoList->infoList)
     {
-        listNode = list_entry(pos, ClisInfoListNode, list);
-        if (listNode->cliID == cliID) {
-            pthread_mutex_unlock(&g_clisInfoList->mutex);
-            return listNode;
+        tmpNode = list_entry(pos, ClisInfoListNode, list);
+        if (tmpNode->cliID == cliID) {
+            listNode = tmpNode;
+            break;
         }
     }
     pthread_mutex_unlock(&g_clisInfoList->mutex);
 
-    return NULL;
+    return listNode;
 }
 
 void DelCliInfoNodeFormListByCliID(EndID cliID)

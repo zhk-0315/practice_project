@@ -37,6 +37,8 @@ int InitServerEpoll(void)
     g_epFd = epoll_create1(EPOLL_CLOEXEC);
     CHECK_FUNCRET_ERR(g_epFd, -1, "epoll_create1 lcfd error");
 
+    LocalDbgout("init Srv Epoll fd(%d)", g_epFd);
+
     return 0;
 }
 
@@ -73,9 +75,13 @@ static void* ServerEpollThread(void* arg)
 
         for (i = 0; i < triggeCnt; i++) {
             if (triggeEvents[i].data.fd == STDIN_FILENO) {
-                AddTaskToServerPool(ProcessStdin, (void*)&triggeEvents[i].data.fd);
+                DebugDgbout("stdin in");
+                AddTaskToServerPoolReleaseArgMem(ProcessStdin,
+                    (void*)&triggeEvents[i].data.fd, sizeof(int));
             } else if (triggeEvents[i].data.fd == GetSrvUdp()->udpFd) {
-                AddTaskToServerPool(PorcessUdpMsg, (void*)&triggeEvents[i].data.fd);
+                DebugDgbout("clis in");
+                AddTaskToServerPoolReleaseArgMem(PorcessUdpMsg,
+                    (void*)&triggeEvents[i].data.fd, sizeof(int));
             }
         }
     }
@@ -93,6 +99,8 @@ int CreateServerEpollThread(void)
 
     sRet = pthread_create(&tid, NULL, ServerEpollThread, NULL);
     CHECK_FUNCRET_SUC(sRet, 0, "create ServerEpollThread error");
+
+    LocalDbgout("CreateServerEpollThread complete");
 
     return 0;
 }

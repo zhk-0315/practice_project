@@ -25,6 +25,7 @@ int InitTxBuf(LcMsg* TxBuf, EndID destEndID);
 int InitRxBuf(LcMsg* RxBuf);
 LcMsg* InitLcMsgBuf(int bufCnt);
 int DestoryLcMsgBuf(LcMsg** _msgBuf);
+void DisplayMsgBuf(LcMsg* msgBuf);
 int SetCheckSum(LcMsg* msgBuf);
 int CheckCheckSum(LcMsg* msgBuf);
 int ClearMsgBuf(LcMsg* msgBuf, MsgType msgType);

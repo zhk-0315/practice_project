@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 #include "clientinfo_list.h"
+#include "lcmsg.h"
 #include "pre_process.h"
 #include "safe_api.h"
 #include "server_lcmsgqueue.h"
@@ -48,6 +49,8 @@ int InitSrvUdp(void)
     GetSrvUdp()->udpFd = udpfd;
     GetSrvUdp()->LcAddr = LcAddr;
 
+    LocalDbgout("init SrvUdp fd(%d)", udpfd);
+
     return 0;
 }
 
@@ -62,8 +65,11 @@ int DestorySrvUdp(void)
 void* ProcessStdin(void* arg)
 {
     size_t RxSize = 0;
-    int fd = *(int*)arg;
+    int fd = 0;
     LcMsg MsgBuf = { 0 };
+
+    fd = *(int*)arg;
+    free(arg);
 
     InitTxBuf(&MsgBuf, SETVER_ENDID);
     RxSize = read(fd, MsgBuf.msg.data, LCMSG_DATA_MAXLEN);
@@ -71,22 +77,23 @@ void* ProcessStdin(void* arg)
         LocalDbgout("read fd(%d) error!", fd);
         return NULL;
     } else if (RxSize == 0) {
-        return arg;
+        return NULL + 1;
     }
 
-    EnSrvMsgQueue(&MsgBuf);
-
-    return arg;
+    return NULL + 1;
 }
 
 void* PorcessUdpMsg(void* arg)
 {
     size_t RxSize = 0;
     size_t TxSize = 0;
-    int fd = *(int*)arg;
+    int fd = 0;
     LcMsg RxBuf = { 0 };
     LcMsg TxBuf = { 0 };
     struct sockaddr_in sockaddr = { 0 };
+
+    fd = *(int*)arg;
+    free(arg);
 
     RxSize = recvfrom(fd, &RxBuf, sizeof(LcMsg), 0, (struct sockaddr*)&sockaddr,
         (socklen_t*)&GetSrvUdp()->addrlen);
@@ -94,7 +101,7 @@ void* PorcessUdpMsg(void* arg)
         LocalDbgout("recvfrom fd(%d) error!", fd);
         return NULL;
     } else if (RxSize == 0) {
-        return arg;
+        return NULL + 1;
     }
 
     if (RxBuf.msg.msgType == SaveCliInfo
@@ -112,10 +119,10 @@ void* PorcessUdpMsg(void* arg)
         EnSrvMsgQueue(&RxBuf);
     }
 
-    return arg;
+    return NULL + 1;
 }
 
-static void* SrvMsgProcess(void* arg)
+static void* SrvMsgProcessTask(void* arg)
 {
     size_t TxSize = 0;
     LcMsg* msgBuf = (LcMsg*)arg;
@@ -125,6 +132,10 @@ static void* SrvMsgProcess(void* arg)
         return NULL;
 
     if (msgBuf->msg.msgType == DataMsg) {
+        if (msgBuf->msg.destEndID == SETVER_ENDID) {
+            DisplayMsgBuf(msgBuf);
+            return NULL + 1;
+        }
         destCliInfo = *GetCliInfoNodeByCliID(msgBuf->msg.destEndID);
         TxSize = sendto(GetSrvUdp()->udpFd, msgBuf, sizeof(LcMsg), 0,
             (struct sockaddr*)&destCliInfo.addr, GetSrvUdp()->addrlen);
@@ -134,32 +145,30 @@ static void* SrvMsgProcess(void* arg)
         }
     }
 
-    return arg;
+    free(msgBuf);
+
+    return NULL + 1;
 }
 
 static void* SrvMsgProcessThread(void* arg)
 {
     pthread_t tid = pthread_self();
-    LcMsg* msgBuf = NULL;
+    LcMsg* msgBuf = malloc(sizeof(LcMsg));
 
     pthread_detach(tid);
-    LCpthread_setname_np(tid, "SrvEpoll");
+    LCpthread_setname_np(tid, "SrvMsgProcess");
 
     while (1) {
-        if (msgBuf == NULL)
-            msgBuf = (LcMsg*)malloc(sizeof(LcMsg));
-
         if (DeSrvMsgQueue(msgBuf) == QUEUE_EMPTY) {
             usleep(50000);
             continue;
         }
 
-        AddTaskToServerPool(SrvMsgProcess, (void*)msgBuf);
-        msgBuf = NULL;
+        AddTaskToServerPoolReleaseArgMem(SrvMsgProcessTask, (void*)msgBuf,
+            sizeof(LcMsg));
     }
 
-    if (msgBuf != NULL)
-        free(msgBuf);
+    free(msgBuf);
 
     return arg;
 }
@@ -171,6 +180,8 @@ int CreateSrvMsgProcessThread(void)
 
     sRet = pthread_create(&tid, NULL, SrvMsgProcessThread, NULL);
     CHECK_FUNCRET_SUC(sRet, 0, "create ServerEpollThread error");
+
+    LocalDbgout("CreateSrvMsgProcessThread complete");
 
     return 0;
 }

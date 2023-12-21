@@ -5,7 +5,7 @@
 
 typedef struct CliUdp {
     int udpFd;
-    socklen_t addrlen;
+    const socklen_t addrlen;
     struct sockaddr_in lcAddr;
     struct sockaddr_in srvAddr;
 } CliUdp;

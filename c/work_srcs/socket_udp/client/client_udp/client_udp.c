@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -18,7 +19,9 @@
 
 CliUdp* GetCliUdp(void)
 {
-    static CliUdp udp = { 0 };
+    static CliUdp udp = {
+        .addrlen = (socklen_t)sizeof(struct sockaddr_in),
+    };
 
     return &udp;
 }
@@ -44,7 +47,8 @@ int InitClientUdp(void)
 
     GetCliUdp()->udpFd = udpFdTmp;
     GetCliUdp()->srvAddr = srvAddrTmp;
-    GetCliUdp()->addrlen = (socklen_t)sizeof(struct sockaddr_in);
+
+    LocalDbgout("init CliUdp fd(%d)", udpFdTmp);
 
     return 0;
 }
@@ -59,16 +63,46 @@ int DestoryCliUdp(void)
     return 0;
 }
 
+static void* ProcessServerMsg(void* arg)
+{
+    LcMsg* msgBuf = (LcMsg*)arg;
+
+    if (msgBuf->msg.msgType == SaveCliInfo) {
+        pthread_mutex_lock(&GetCliFlag()->mutex);
+        GetCliFlag()->boolInitCliInfo = 1;
+        pthread_mutex_unlock(&GetCliFlag()->mutex);
+    } else if (msgBuf->msg.msgType == DataMsg) {
+        DisplayMsgBuf(msgBuf);
+    }
+
+    free(msgBuf);
+
+    return NULL + 1;
+}
+
 static void* RecvServerMsgThread(void* arg)
 {
     pthread_t selfTid = pthread_self();
+    size_t RxSize = 0;
+    LcMsg* RxBuf = (LcMsg*)malloc(sizeof(LcMsg));
 
     LCpthread_setname_np(selfTid, "RecvSrvMsg");
     pthread_detach(selfTid);
 
     while (1) {
-        sleep(1);
+        RxSize = recvfrom(GetCliUdp()->udpFd, RxBuf, sizeof(LcMsg), 0, NULL,
+            (socklen_t*)&GetCliUdp()->addrlen);
+        if (RxSize == -1) {
+            LocalDbgout("recvfrom server error");
+            continue;
+        } else if (RxSize == 0) {
+            continue;
+        }
+
+        AddTaskToClientPoolReleaseArgMem(ProcessServerMsg, RxBuf, sizeof(LcMsg));
     }
+
+    free(RxBuf);
 
     return NULL;
 }
@@ -80,6 +114,8 @@ int CreateRecvServerMsgThread(void)
 
     s32Ret = pthread_create(&tid, NULL, RecvServerMsgThread, NULL);
     CHECK_FUNCRET_SUC(s32Ret, 0, "create RecvServerMsgThread error");
+
+    LocalDbgout("CreateRecvServerMsgThread complete");
 
     return 0;
 }
@@ -103,7 +139,7 @@ int SendMsgToServer(void)
 {
     size_t RxSize = 0;
     unsigned char* RxData = (unsigned char*)malloc(LCMSG_DATA_MAXLEN);
-    LcMsg* TxBuf = NULL;
+    LcMsg* TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
 
     LCclear();
     while (1) {
@@ -120,17 +156,13 @@ int SendMsgToServer(void)
         if (LCstrcasestr((const char*)RxData, "zkquit"))
             break;
 
-        if (TxBuf == NULL)
-            TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
         InitTxBuf(TxBuf, SETVER_ENDID);
         memcpy(TxBuf->msg.data, RxData, LCMSG_DATA_MAXLEN);
-        AddTaskToClientPool(SendMsgBufToServer, TxBuf);
-        TxBuf = NULL;
+        AddTaskToClientPoolReleaseArgMem(SendMsgBufToServer, TxBuf, sizeof(LcMsg));
     }
     LCclear();
 
-    if (TxBuf != NULL)
-        free(TxBuf);
+    free(TxBuf);
     free(RxData);
 
     return 0;
@@ -141,7 +173,7 @@ int SendMsgToOtherClient(void)
     EndID remoteEndID = 0;
     size_t RxSize = 0;
     unsigned char* RxData = (unsigned char*)malloc(LCMSG_DATA_MAXLEN);
-    LcMsg* TxBuf = NULL;
+    LcMsg* TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
 
     LCclear();
     LCprintf("请输入其他client的EndID: ");
@@ -161,17 +193,13 @@ int SendMsgToOtherClient(void)
         if (LCstrcasestr((const char*)RxData, "zkquit"))
             break;
 
-        if (TxBuf == NULL)
-            TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
         InitTxBuf(TxBuf, remoteEndID);
         memcpy(TxBuf->msg.data, RxData, LCMSG_DATA_MAXLEN);
-        AddTaskToClientPool(SendMsgBufToServer, TxBuf);
-        TxBuf = NULL;
+        AddTaskToClientPoolReleaseArgMem(SendMsgBufToServer, TxBuf, sizeof(LcMsg));
     }
     LCclear();
 
-    if (TxBuf != NULL)
-        free(TxBuf);
+    free(TxBuf);
     free(RxData);
 
     return 0;
@@ -179,9 +207,8 @@ int SendMsgToOtherClient(void)
 
 int InitClientInfoToServer(void)
 {
-    LcMsg* TxBuf = NULL;
+    LcMsg* TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
 
-    TxBuf = (LcMsg*)malloc(sizeof(LcMsg));
     TxBuf->msg.msgType = SaveCliInfo;
     TxBuf->msg.srcEndID = GetModulesManager()->LcEndID;
     TxBuf->msg.destEndID = SETVER_ENDID;

@@ -14,5 +14,6 @@ int InitSrvUdp(void);
 int DestorySrvUdp(void);
 void* ProcessStdin(void* arg);
 void* PorcessUdpMsg(void* arg);
+int CreateSrvMsgProcessThread(void);
 
 #endif

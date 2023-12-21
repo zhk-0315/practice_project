@@ -31,13 +31,13 @@ static void* ClientInterface(void* arg)
             DisplayStr("being InitClientInfoToServer");
             InitClientInfoToServer();
         }
-        usleep(500000);
+        usleep(50000);
     }
 
+    pthread_mutex_lock(&GetCliFlag()->mutex);
+    boolTmp = GetCliFlag()->boolInitCliInfo;
+    pthread_mutex_unlock(&GetCliFlag()->mutex);
     while (1) {
-        pthread_mutex_lock(&GetCliFlag()->mutex);
-        boolTmp = GetCliFlag()->boolInitCliInfo;
-        pthread_mutex_unlock(&GetCliFlag()->mutex);
         if (!boolTmp) {
             DisplayStr("InitClientInfoToServer error");
             sleep(1);
@@ -76,6 +76,8 @@ int CreateClientInterfaceThread(void)
 
     s32Ret = pthread_create(&tid, NULL, ClientInterface, NULL);
     CHECK_FUNCRET_SUC(s32Ret, 0, "create RecvServerMsgThread error");
+
+    LocalDbgout("CreateClientInterfaceThread complete");
 
     return 0;
 }

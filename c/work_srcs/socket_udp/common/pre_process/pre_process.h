@@ -10,7 +10,6 @@
 
 typedef struct ModulesManager {
     EndID LcEndID;
-    //
     LogOp* (*GetLogFile)(void);
 } ModulesManager;
 
@@ -44,9 +43,9 @@ const ModulesManager* GetModulesManager(void);
         while (getchar() != '\n') { } \
     } while (0)
 
-#define DisplayStr(fmt, args...)    \
-    do {                            \
-        LCprintf(fmt "\n", ##args); \
+#define DisplayStr(fmt, args...)                                                 \
+    do {                                                                         \
+        LCprintf("LCID(%d)--->" fmt "\n", GetModulesManager()->LcEndID, ##args); \
     } while (0)
 
 #define LCclear()                  \
@@ -79,7 +78,7 @@ const ModulesManager* GetModulesManager(void);
     })
 
 #define SERVER_IP ("127.0.0.1")
-#define SERVER_PORT (35666)
+#define SERVER_PORT (36666)
 #define SETVER_ENDID (0)
 
 #define FD_CHECK(fd) (fd > 2)

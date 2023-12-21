@@ -57,6 +57,8 @@ static int InitModules(void)
 
     CreateServerThreadPool();
     CreateServerEpollThread();
+    CreateSrvMsgProcessThread();
+    
 
     return 0;
 }
