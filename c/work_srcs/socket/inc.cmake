@@ -4,6 +4,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 # ####################################################
 set(COMMON_DIR "${LC_PROJECT_DIR}/common")
+set(LIBSRC_DIR "${LC_PROJECT_DIR}/libsrcs")
 set(LIBRARY_OUTPUT_PATH "${LC_PROJECT_DIR}/libsrcs/lib")
 
 # ####################################################
@@ -34,12 +35,20 @@ macro(recurse_src_list MACRO_TOP_DIR _SRC_LIST_VAR ALL_TYPE_LIST)
 endmacro()
 
 # ####################################################
-list(APPEND BIN_SRC_TOP_DIR_LIST ${COMMON_DIR})
+macro(set_bin_compile_env)
+    list(APPEND SRC_TOP_DIR_LIST ${COMMON_DIR})
+    list(APPEND SRC_TOP_DIR_LIST ${LIBSRC_DIR})
+endmacro()
 
-add_compile_options(
-    -g
-    -Wall
-    -O0
+macro(set_lib_compile_env)
+endmacro()
 
-    # -Werror
-)
+macro(set_all_compile_env)
+    add_compile_options(
+        -g
+        -Wall
+        -O0
+
+        # -Werror
+    )
+endmacro()
