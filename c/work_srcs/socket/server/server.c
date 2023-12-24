@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include "pre_modules.h"
+#include "server_epoll.h"
 #include "server_pool.h"
 
 static void set_pre_modules(void)
@@ -13,7 +14,7 @@ static void set_pre_modules(void)
     getcwd(write_pre_modules_addr()->file_.path, LOG_FILE_PATH_LEN);
     strcat(write_pre_modules_addr()->file_.path, "/logsrv");
     // endid
-    write_pre_modules_addr()->endid = getpid();
+    write_pre_modules_addr()->endid = g_server_endid;
 }
 
 static void unset_pre_modules(void)
@@ -23,12 +24,24 @@ static void unset_pre_modules(void)
 
 static void init_all_modules(void)
 {
+    init_server_epoll();
+
     create_server_thread_pool();
 }
 
 static void release_all_modules_resources(void)
 {
     destroy_server_thread_pool();
+
+    destroy_server_epoll();
+}
+
+static void* test_thread_pool(void* arg)
+{
+    printf("test thread pool\n");
+    fflush(stdout);
+
+    return NULL + 1;
 }
 
 int main(int argc, const char* argv[])
@@ -38,6 +51,9 @@ int main(int argc, const char* argv[])
     init_all_modules();
 
     while (1) {
+        // add_task_to_server_pool_release_arg_mem(test_thread_pool, NULL, 0);
+        // usleep(200000);
+        sleep(5);
     }
 
     release_all_modules_resources();
