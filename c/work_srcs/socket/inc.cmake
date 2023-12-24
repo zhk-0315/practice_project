@@ -37,7 +37,16 @@ endmacro()
 # ####################################################
 macro(set_bin_compile_env)
     list(APPEND SRC_TOP_DIR_LIST ${COMMON_DIR})
-    list(APPEND SRC_TOP_DIR_LIST ${LIBSRC_DIR})
+    recurse_add_include_dir(${LIBSRC_DIR})
+    add_compile_definitions(
+        UNSAFE_API
+    )
+    link_directories(
+        ${LIBRARY_OUTPUT_PATH}
+    )
+    link_libraries(
+        LClogout
+    )
 endmacro()
 
 macro(set_lib_compile_env)

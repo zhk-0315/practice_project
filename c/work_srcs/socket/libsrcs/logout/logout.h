@@ -1,6 +1,8 @@
 #ifndef __LIBSRCS__LOGOUT__LOGOUT_H
 #define __LIBSRCS__LOGOUT__LOGOUT_H
 
+#include <string.h>
+
 typedef enum log_file_status_t {
     ALWAYS_OPEN,
     EVERY_TIME_OPEN
@@ -12,8 +14,8 @@ typedef struct log_file_t {
     char path[LOG_FILE_PATH_LEN];
 } log_file_t;
 
-void clear_log_file(void);
-void __logout(log_file_t* file, const char* fmt, ...);
+void init_log_file_clear(_Bool init_clear_file, long max_log_size);
+void __logout(const log_file_t* file, const char* fmt, ...);
 
 #define notdir_fpath(fpath) ({            \
     char* tmp = strrchr(fpath, '/');      \

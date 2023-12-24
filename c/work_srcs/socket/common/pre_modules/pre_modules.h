@@ -10,14 +10,14 @@ typedef pid_t endid_t;
 
 typedef struct pre_modules_t {
     log_file_t file_;
-    endid_t endif;
+    endid_t endid;
 } pre_modules_t;
 
 void destroy_pre_modules(void);
 pre_modules_t* write_pre_modules_addr(void);
 const pre_modules_t* read_pre_modules_addr(void);
 
-#define lc_logout(fmt, args)                                  \
+#define lc_logout(fmt, args...)                               \
     do {                                                      \
         logout(&read_pre_modules_addr()->file_, fmt, ##args); \
     } while (0)
