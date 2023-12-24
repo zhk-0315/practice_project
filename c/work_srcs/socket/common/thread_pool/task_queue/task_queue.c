@@ -36,6 +36,10 @@ queue_ret_t de_task_from_queue(struct list_head* task_queue, task_t* _task)
         return QUEUE_ERROR;
     }
 
+    if (list_empty(task_queue)) {
+        return QUEUE_EMPTY;
+    }
+
     node = list_entry(task_queue->next, task_queue_node_t, list);
     if (_task) {
         *_task = node->task;

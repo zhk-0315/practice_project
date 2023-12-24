@@ -1,8 +1,11 @@
 #ifndef __COMMON__PRE_MODULES__PRE_MODULES_H
 #define __COMMON__PRE_MODULES__PRE_MODULES_H
 
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <sys/types.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "logout.h"
 
@@ -22,6 +25,13 @@ const pre_modules_t* read_pre_modules_addr(void);
         logout(&read_pre_modules_addr()->file_, fmt, ##args); \
     } while (0)
 
+#define lc_err_logout(fmt, args...)                                              \
+    do {                                                                         \
+        char lc_err_str[256] = { 0 };                                            \
+        strerror_r(errno, lc_err_str, sizeof(lc_err_str));                       \
+        logout(&read_pre_modules_addr()->file_, fmt ": %s", ##args, lc_err_str); \
+    } while (0)
+
 #define lc_printf(fmt, args...) \
     do {                        \
         printf(fmt, ##args);    \
@@ -33,5 +43,12 @@ const pre_modules_t* read_pre_modules_addr(void);
         scanf(fmt, ##args);           \
         while (getchar() != '\n') { } \
     } while (0)
+
+#define CHECK_FD(macro_fd) (macro_fd > STDERR_FILENO)
+
+const socklen_t g_addrlen;
+const endid_t g_server_endid;
+const uint16_t g_server_udp_port;
+const uint16_t g_server_tcp_port;
 
 #endif

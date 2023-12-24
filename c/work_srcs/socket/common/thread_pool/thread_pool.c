@@ -16,9 +16,10 @@ void add_task_to_pool_use_arg_mem(thread_pool_t* pool, void* (*handler)(void*),
     };
 
     pthread_mutex_lock(&pool->mutex_);
-    if (pool->de_queue(pool->queue, &task) == QUEUE_SUCCESS) {
+    if (pool->en_queue(pool->queue, &task) == QUEUE_SUCCESS) {
         pool->cur_tasks_cnt++;
     }
+    pthread_cond_broadcast(&pool->cond_);
     pthread_mutex_unlock(&pool->mutex_);
 }
 
@@ -27,7 +28,7 @@ void add_task_to_pool_release_arg_mem(thread_pool_t* pool,
 {
     task_t task = {
         .handler = handler,
-        .arg = malloc(arg_size),
+        .arg = arg ? malloc(arg_size) : NULL,
         .arg_size = arg_size
     };
 
@@ -36,9 +37,10 @@ void add_task_to_pool_release_arg_mem(thread_pool_t* pool,
     }
 
     pthread_mutex_lock(&pool->mutex_);
-    if (pool->de_queue(pool->queue, &task) == QUEUE_SUCCESS) {
+    if (pool->en_queue(pool->queue, &task) == QUEUE_SUCCESS) {
         pool->cur_tasks_cnt++;
     }
+    pthread_cond_broadcast(&pool->cond_);
     pthread_mutex_unlock(&pool->mutex_);
 }
 
