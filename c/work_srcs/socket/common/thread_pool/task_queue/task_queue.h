@@ -16,12 +16,15 @@ typedef struct task_queue_node_t {
     struct list_head list;
 } task_queue_node_t;
 
+#ifndef LC_QUEUE_RET
+#define LC_QUEUE_RET
 typedef enum queue_ret_t {
     QUEUE_SUCCESS,
     QUEUE_ERROR,
     QUEUE_EMPTY,
     QUEUE_FULL
 } queue_ret_t;
+#endif
 
 struct list_head* init_task_queue(void);
 queue_ret_t en_task_to_queue(struct list_head* task_queue, const task_t* _task);
