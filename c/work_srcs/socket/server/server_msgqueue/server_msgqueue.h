@@ -1,0 +1,7 @@
+#ifndef __SERVER__SERVER_MSGQUEUE__SERVER_MSGQUEUE_H
+#define __SERVER__SERVER_MSGQUEUE__SERVER_MSGQUEUE_H
+
+#include "msg_queue.h"
+
+
+#endif
