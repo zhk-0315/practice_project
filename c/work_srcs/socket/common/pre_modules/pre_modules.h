@@ -46,10 +46,10 @@ const pre_modules_t* read_pre_modules_addr(void);
 
 #define CHECK_FD(macro_fd) (macro_fd > STDERR_FILENO)
 
-const socklen_t g_addrlen;
-const endid_t g_server_endid;
-const char* g_server_addr;
-const uint16_t g_server_udp_port;
-const uint16_t g_server_tcp_port;
+extern const socklen_t g_addrlen;
+extern const endid_t g_server_endid;
+extern const char* g_server_addr;
+extern const uint16_t g_server_udp_port;
+extern const uint16_t g_server_tcp_port;
 
 #endif

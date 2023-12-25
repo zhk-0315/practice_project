@@ -1,0 +1,7 @@
+#ifndef SERVER__CLI_SQLITE3__CLI_SQLITE3_H
+#define SERVER__CLI_SQLITE3__CLI_SQLITE3_H
+
+
+
+
+#endif
