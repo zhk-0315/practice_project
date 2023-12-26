@@ -18,3 +18,6 @@ foreach(TOP_DIR IN LISTS SRC_TOP_DIR_LIST)
 endforeach()
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
+target_link_libraries(${PROJECT_NAME}
+    -lsqlite3
+)

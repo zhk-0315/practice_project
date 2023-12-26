@@ -1,11 +1,14 @@
 #include <pthread.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/epoll.h>
 
 #include "pre_modules.h"
 #include "server_epoll.h"
+#include "server_pool.h"
 #include "server_tcp.h"
 #include "server_udp.h"
+#include "sock_msg.h"
 
 #define LC_MAXEVENTS (100)
 
@@ -60,6 +63,24 @@ int del_fd_from_srv_epoll(int fd)
     return epoll_ctl(g_epfd, EPOLL_CTL_DEL, fd, NULL);
 }
 
+static void* process_stdin_msg(void* arg)
+{
+    int fd = *(int*)arg;
+    ssize_t RXsize = 0;
+    // lc_msg_package_t msgbuf = { 0 };
+    unsigned char RXdata[MSG_DATA_LEN];
+
+    RXsize = read(fd, RXdata, sizeof(RXdata));
+    if (RXsize < 0) {
+        lc_err_logout("read fd(%d) error", fd);
+        return NULL;
+    } else if (RXsize == 0) {
+        return NULL + 1;
+    }
+
+    return NULL + 1;
+}
+
 void* server_epoll_thread(void* arg)
 {
     int trigge_cnt = 0;
@@ -77,6 +98,8 @@ void* server_epoll_thread(void* arg)
 
         for (i = 0; i < trigge_cnt; i++) {
             if (events[i].data.fd == STDIN_FILENO) {
+                add_task_to_server_pool_release_arg_mem(process_stdin_msg,
+                    &events[i].data.fd, sizeof(int));
             } else if (epoll_trigge_tcpfd(events[i].data.fd)) {
             } else if (epoll_trigge_udpfd(events[i].data.fd)) {
             }

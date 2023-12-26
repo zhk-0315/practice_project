@@ -1,10 +1,10 @@
 #include <netinet/in.h>
-#include <stdio.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
 #include "pre_modules.h"
 #include "server_epoll.h"
+#include "sock_msg.h"
 
 static int g_udpfd = 0;
 
@@ -57,4 +57,18 @@ int destroy_server_udp(void)
 _Bool epoll_trigge_udpfd(int fd)
 {
     return (fd == g_udpfd);
+}
+
+int send_msg_by_udp(endid_t endid, lc_msg_package_t* msg_pack, struct sockaddr_in* _lcaddr)
+{
+    ssize_t TXsize = 0;
+
+    TXsize = sendto(g_udpfd, msg_pack, sizeof(lc_msg_package_t), 0,
+        (struct sockaddr*)_lcaddr, g_addrlen);
+    if (TXsize != sizeof(lc_msg_package_t)) {
+        lc_err_logout("sendto to endid(%d) error", endid);
+        return -1;
+    }
+
+    return 0;
 }

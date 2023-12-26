@@ -1,10 +1,10 @@
 #include <netinet/in.h>
-#include <stdio.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
 #include "pre_modules.h"
 #include "server_epoll.h"
+#include "sock_msg.h"
 
 static int g_tcpfd = 0;
 
@@ -63,4 +63,17 @@ int destroy_server_tcp(void)
 _Bool epoll_trigge_tcpfd(int fd)
 {
     return (fd == g_tcpfd);
+}
+
+int send_msg_by_tcp(endid_t endid, lc_msg_package_t* msg_pack, int cli_fd)
+{
+    ssize_t TXsize = 0;
+
+    TXsize = send(cli_fd, msg_pack, sizeof(lc_msg_package_t), 0);
+    if (TXsize != sizeof(lc_msg_package_t)) {
+        lc_err_logout("send to endid(%d) error", endid);
+        return -1;
+    }
+
+    return 0;
 }
