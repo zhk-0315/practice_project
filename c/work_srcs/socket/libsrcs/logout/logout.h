@@ -1,8 +1,6 @@
 #ifndef __LIBSRCS__LOGOUT__LOGOUT_H
 #define __LIBSRCS__LOGOUT__LOGOUT_H
 
-#include <string.h>
-
 typedef enum log_file_status_t {
     ALWAYS_OPEN,
     EVERY_TIME_OPEN
