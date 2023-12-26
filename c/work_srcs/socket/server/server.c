@@ -5,6 +5,8 @@
 #include "pre_modules.h"
 #include "server_epoll.h"
 #include "server_pool.h"
+#include "server_tcp.h"
+#include "server_udp.h"
 
 static void set_pre_modules(void)
 {
@@ -25,6 +27,9 @@ static void unset_pre_modules(void)
 static void init_all_modules(void)
 {
     init_server_epoll();
+    init_server_tcp();
+    init_server_udp();
+    
 
     create_server_thread_pool();
 }
@@ -33,6 +38,8 @@ static void release_all_modules_resources(void)
 {
     destroy_server_thread_pool();
 
+    destroy_server_udp();
+    destroy_server_tcp();
     destroy_server_epoll();
 }
 

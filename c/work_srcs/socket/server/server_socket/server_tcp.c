@@ -2,8 +2,10 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
+#include "cli_sqlite3.h"
 #include "pre_modules.h"
 #include "server_epoll.h"
+#include "server_msgqueue.h"
 #include "sock_msg.h"
 
 static int g_tcpfd = 0;
@@ -65,14 +67,39 @@ _Bool epoll_trigge_tcpfd(int fd)
     return (fd == g_tcpfd);
 }
 
-int send_msg_by_tcp(endid_t endid, lc_msg_package_t* msg_pack, int cli_fd)
+int send_msg_by_tcp(lc_msg_package_t* msg_pack, int cli_fd)
 {
     ssize_t TXsize = 0;
 
     TXsize = send(cli_fd, msg_pack, sizeof(lc_msg_package_t), 0);
     if (TXsize != sizeof(lc_msg_package_t)) {
-        lc_err_logout("send to endid(%d) error", endid);
+        lc_err_logout("send to endid(%d) error", msg_pack->msg.destid);
         return -1;
+    }
+
+    return 0;
+}
+
+int recv_tcp_cli_msg(int fd)
+{
+    lc_msg_package_t msgbuf = { 0 };
+    ssize_t RXsize = 0;
+
+    RXsize = recv(fd, &msgbuf, sizeof(lc_msg_package_t), 0);
+    if (RXsize < 0) {
+        lc_err_logout("recv fd(%d) error", fd);
+        return -1;
+    } else if (RXsize == 0) {
+        del_fd_from_srv_epoll(fd);
+        del_tcp_cli_from_database_by_fd(fd);
+        close(fd);
+        return 0;
+    }
+
+    if (msgbuf.msg.msg_type == SAVE_CLI_INFO) {
+        add_tcp_cli_to_database(msgbuf.msg.srcid, fd);
+    } else {
+        en_srv_msg_queue(&msgbuf);
     }
 
     return 0;

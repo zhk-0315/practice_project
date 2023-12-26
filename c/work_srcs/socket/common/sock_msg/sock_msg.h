@@ -6,7 +6,8 @@
 typedef enum lc_msg_type_t {
     SAVE_CLI_INFO,
     TCP_DATA,
-    UDP_DATA
+    UDP_DATA,
+    SRV_BROADCAST
 } lc_msg_type_t;
 
 #define MSG_DATA_LEN (512)

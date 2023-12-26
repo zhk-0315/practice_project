@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/epoll.h>
 
+#include "cli_sqlite3.h"
 #include "pre_modules.h"
 #include "server_epoll.h"
 #include "server_pool.h"
@@ -67,10 +68,9 @@ static void* process_stdin_msg(void* arg)
 {
     int fd = *(int*)arg;
     ssize_t RXsize = 0;
-    // lc_msg_package_t msgbuf = { 0 };
-    unsigned char RXdata[MSG_DATA_LEN];
+    lc_msg_package_t msgbuf = { 0 };
 
-    RXsize = read(fd, RXdata, sizeof(RXdata));
+    RXsize = read(fd, msgbuf.msg.data, sizeof(msgbuf.msg.data));
     if (RXsize < 0) {
         lc_err_logout("read fd(%d) error", fd);
         return NULL;
@@ -78,10 +78,43 @@ static void* process_stdin_msg(void* arg)
         return NULL + 1;
     }
 
+    msgbuf.msg.msg_type = SRV_BROADCAST;
+    msgbuf.msg.srcid = read_pre_modules_addr()->endid;
+    traverse_table_send_msg(&msgbuf);
+
     return NULL + 1;
 }
 
-void* server_epoll_thread(void* arg)
+static void* process_accept_tcp_link(void* arg)
+{
+    int fd = *(int*)arg;
+    int newfd = 0;
+
+    newfd = accept(fd, NULL, (socklen_t*)&g_addrlen);
+    if (!CHECK_FD(newfd)) {
+        lc_err_logout("accept newfd error");
+        return NULL;
+    }
+
+    add_fd_to_srv_epoll(newfd, EPOLLIN | EPOLLET);
+
+    return NULL + 1;
+}
+
+static void* process_recv_cli_msg(void* arg)
+{
+    int fd = *(int*)arg;
+
+    if (epoll_trigge_udpfd(fd)) {
+        recv_udp_cli_msg(fd);
+    } else {
+        recv_tcp_cli_msg(fd);
+    }
+
+    return NULL + 1;
+}
+
+static void* server_epoll_thread(void* arg)
 {
     int trigge_cnt = 0;
     register int i = 0;
@@ -101,7 +134,11 @@ void* server_epoll_thread(void* arg)
                 add_task_to_server_pool_release_arg_mem(process_stdin_msg,
                     &events[i].data.fd, sizeof(int));
             } else if (epoll_trigge_tcpfd(events[i].data.fd)) {
-            } else if (epoll_trigge_udpfd(events[i].data.fd)) {
+                add_task_to_server_pool_release_arg_mem(process_accept_tcp_link,
+                    &events[i].data.fd, sizeof(int));
+            } else {
+                add_task_to_server_pool_release_arg_mem(process_recv_cli_msg,
+                    &events[i].data.fd, sizeof(int));
             }
         }
         trigge_cnt = 0;

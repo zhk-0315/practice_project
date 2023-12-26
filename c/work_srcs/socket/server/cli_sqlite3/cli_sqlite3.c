@@ -79,6 +79,16 @@ int add_tcp_cli_to_database(endid_t endid, int fd)
     if (iret != SQLITE_OK) {
         lc_logout("INSERT TO CliInfo error: %s", sql_err);
     }
+    if (iret == SQLITE_CONSTRAINT) {
+        sprintf(sql_cmd, "UPDATE CliInfo SET fd = %d,addr = NULL,port = NULL "
+                         "WHERE endid == %d;",
+            fd, endid);
+        iret = sqlite3_exec(lc_sqls.sql, sql_cmd, NULL, NULL, (char**)&sql_err);
+        if (iret != SQLITE_OK) {
+            lc_logout("UPDATE CliInfo error: %s", sql_err);
+        }
+    }
+
     pthread_mutex_unlock(&lc_sqls.mutex_);
 
     return 0;
@@ -121,6 +131,15 @@ int add_udp_cli_to_database(endid_t endid, uint32_t ipaddr, uint16_t port)
     iret = sqlite3_exec(lc_sqls.sql, sql_cmd, NULL, NULL, (char**)&sql_err);
     if (iret != SQLITE_OK) {
         lc_logout("INSERT TO CliInfo error: %s", sql_err);
+    }
+    if (iret == SQLITE_CONSTRAINT) {
+        sprintf(sql_cmd, "UPDATE CliInfo SET fd = NULL,addr = %u,port = %u "
+                         "WHERE endid == %d;",
+            ipaddr, port, endid);
+        iret = sqlite3_exec(lc_sqls.sql, sql_cmd, NULL, NULL, (char**)&sql_err);
+        if (iret != SQLITE_OK) {
+            lc_logout("UPDATE CliInfo error: %s", sql_err);
+        }
     }
     pthread_mutex_unlock(&lc_sqls.mutex_);
 
@@ -199,7 +218,6 @@ int get_cli_by_endid(endid_t ednid, socket_handle_t* _socket_mem)
 static int send_msg_to_all_ret(void* arg, int retc, char** retv, char** retname)
 {
     int cli_fd = 0;
-    endid_t endid = 0;
     struct sockaddr_in lcaddr = { 0 };
     lc_msg_package_t* msg_pack = (lc_msg_package_t*)arg;
 
@@ -207,15 +225,15 @@ static int send_msg_to_all_ret(void* arg, int retc, char** retv, char** retname)
         return SQLITE_ERROR;
     }
 
-    endid = atoi(retv[0]);
+    msg_pack->msg.destid = atoi(retv[0]);
     if (retv[1] && !retv[2] && !retv[3]) {
         cli_fd = atoi(retv[1]);
-        send_msg_by_tcp(endid, msg_pack, cli_fd);
+        send_msg_by_tcp(msg_pack, cli_fd);
     } else if (!retv[1] && retv[2] && retv[3]) {
         lcaddr.sin_family = AF_INET;
         lcaddr.sin_addr.s_addr = (uint32_t)atoi(retv[2]);
         lcaddr.sin_port = (uint16_t)atoi(retv[3]);
-        send_msg_by_udp(endid, msg_pack, &lcaddr);
+        send_msg_by_udp(msg_pack, &lcaddr);
     }
 
     return SQLITE_OK;
