@@ -100,4 +100,19 @@ int recv_udp_cli_msg(int fd)
     return 0;
 }
 
+int send_udp_cli_msg(socket_handle_t* _socket, lc_msg_package_t* _msgbuf)
+{
+    ssize_t TXsize = 0;
 
+    if (_socket->socket_type != UDP_LINK) {
+        return -1;
+    }
+
+    TXsize = sendto(g_udpfd, _msgbuf, sizeof(lc_msg_package_t), 0,
+        (struct sockaddr*)&_socket->socket_handle.addr, g_addrlen);
+    if (TXsize != sizeof(lc_msg_package_t)) {
+        lc_err_logout("sendto msg error!");
+    }
+
+    return 0;
+}

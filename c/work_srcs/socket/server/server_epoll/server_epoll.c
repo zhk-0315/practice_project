@@ -10,6 +10,7 @@
 #include "server_tcp.h"
 #include "server_udp.h"
 #include "sock_msg.h"
+#include "unsafe_api.h"
 
 #define LC_MAXEVENTS (100)
 
@@ -118,7 +119,11 @@ static void* server_epoll_thread(void* arg)
 {
     int trigge_cnt = 0;
     register int i = 0;
+    pthread_t tid = pthread_self();
     struct epoll_event events[LC_MAXEVENTS] = { 0 };
+
+    pthread_detach(tid);
+    lc_pthread_setname_np(tid, "SrvEpoll");
 
     while (1) {
         trigge_cnt = epoll_wait(g_epfd, events, LC_MAXEVENTS, 50);

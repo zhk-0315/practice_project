@@ -104,3 +104,20 @@ int recv_tcp_cli_msg(int fd)
 
     return 0;
 }
+
+int send_tcp_cli_msg(socket_handle_t* _socket, lc_msg_package_t* _msgbuf)
+{
+    ssize_t TXsize = 0;
+
+    if (_socket->socket_type != TCP_LINK) {
+        return -1;
+    }
+
+    TXsize = send(_socket->socket_handle.fd, _msgbuf,
+        sizeof(lc_msg_package_t), 0);
+    if (TXsize != sizeof(lc_msg_package_t)) {
+        lc_err_logout("send msg error!");
+    }
+
+    return 0;
+}

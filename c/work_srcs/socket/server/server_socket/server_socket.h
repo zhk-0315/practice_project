@@ -17,4 +17,6 @@ typedef struct socket_handle_t {
     } socket_handle;
 } socket_handle_t;
 
+void create_socket_msg_process_thread(void);
+
 #endif

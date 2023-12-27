@@ -21,4 +21,6 @@ typedef union lc_msg_package_t {
     unsigned char buf[sizeof(struct msg) + 1];
 } lc_msg_package_t;
 
+void* dispaly_msg_package(void* arg);
+
 #endif
