@@ -10,7 +10,6 @@ int init_client_udp(void)
 {
     int iret = 0;
     int optval_ = 1;
-    struct sockaddr_in lcaddr = { 0 };
 
     if (CHECK_FD(g_cli_udpfd)) {
         return 0;
@@ -30,11 +29,14 @@ int init_client_udp(void)
     return 0;
 }
 
-int destroy_client_udp(void)
+int try_destroy_client_udp(void)
 {
     if (!CHECK_FD(g_cli_udpfd)) {
         return 0;
     }
 
-    return close(g_cli_udpfd);
+    close(g_cli_udpfd);
+    g_cli_udpfd = 0;
+
+    return 0;
 }

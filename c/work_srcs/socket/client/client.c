@@ -1,3 +1,4 @@
+#include "client_socket.h"
 #include "pre_modules.h"
 
 static void set_cli_pre_modules(void)
@@ -18,14 +19,30 @@ static void unset_cli_pre_modules(void)
     destroy_pre_modules();
 }
 
+static void init_all_cli_modules(void)
+{
+    create_or_switch_socket_type(UDP_LINK);
+
+    // create_client_thread_pool();
+}
+
+static void release_all_cli_modules_resources(void)
+{
+    // destroy_client_thread_pool();
+
+    destroy_socket();
+}
+
 int main(int argc, const char* argv[])
 {
     set_cli_pre_modules();
     lc_logout("start client");
+    init_all_cli_modules();
 
     while (1) {
     }
 
+    release_all_cli_modules_resources();
     unset_cli_pre_modules();
 
     return 0;

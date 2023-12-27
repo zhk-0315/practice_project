@@ -7,15 +7,6 @@ set(COMMON_DIR "${LC_PROJECT_DIR}/common")
 set(LIBSRC_DIR "${LC_PROJECT_DIR}/libsrcs")
 set(LIBRARY_OUTPUT_PATH "${LC_PROJECT_DIR}/libsrcs/lib")
 
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
-    cmake_file_api(
-        QUERY
-        API_VERSION 1
-        CODEMODEL 2.3
-        TOOLCHAINS 1
-    )
-endif()
-
 # ####################################################
 macro(recurse_add_include_dir MACRO_TOP_DIR)
     file(GLOB LC_FILE_LIST ${MACRO_TOP_DIR}/*.h;${MACRO_TOP_DIR}/*.hpp)
