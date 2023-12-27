@@ -8,7 +8,7 @@
 #include "server_msgqueue.h"
 #include "sock_msg.h"
 
-static int g_tcpfd = 0;
+static int g_srv_tcpfd = 0;
 
 int init_server_tcp(void)
 {
@@ -16,55 +16,55 @@ int init_server_tcp(void)
     int optval_ = 1;
     struct sockaddr_in lcaddr = { 0 };
 
-    if (CHECK_FD(g_tcpfd)) {
+    if (CHECK_FD(g_srv_tcpfd)) {
         return 0;
     }
 
-    g_tcpfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (!CHECK_FD(g_tcpfd)) {
-        lc_err_logout("socket g_tcpfd error");
+    g_srv_tcpfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (!CHECK_FD(g_srv_tcpfd)) {
+        lc_err_logout("socket g_srv_tcpfd error");
         return -1;
     }
 
-    iret = setsockopt(g_tcpfd, SOL_SOCKET, SO_REUSEADDR, &optval_, sizeof(optval_));
+    iret = setsockopt(g_srv_tcpfd, SOL_SOCKET, SO_REUSEADDR, &optval_, sizeof(optval_));
     if (iret != 0) {
-        lc_err_logout("setsockopt g_tcpfd error");
+        lc_err_logout("setsockopt g_srv_tcpfd error");
     }
 
     lcaddr.sin_family = AF_INET;
     lcaddr.sin_addr.s_addr = INADDR_ANY;
     lcaddr.sin_port = htons(g_server_tcp_port);
-    iret = bind(g_tcpfd, (struct sockaddr*)&lcaddr, g_addrlen);
+    iret = bind(g_srv_tcpfd, (struct sockaddr*)&lcaddr, g_addrlen);
     if (iret != 0) {
-        lc_err_logout("bind g_tcpfd error");
+        lc_err_logout("bind g_srv_tcpfd error");
         return -1;
     }
 
-    iret = listen(g_tcpfd, 3);
+    iret = listen(g_srv_tcpfd, 3);
     if (iret != 0) {
-        lc_err_logout("listen g_tcpfd error");
+        lc_err_logout("listen g_srv_tcpfd error");
         return -1;
     }
 
-    add_fd_to_srv_epoll(g_tcpfd, EPOLLIN | EPOLLET);
+    add_fd_to_srv_epoll(g_srv_tcpfd, EPOLLIN | EPOLLET);
 
     return 0;
 }
 
 int destroy_server_tcp(void)
 {
-    if (!CHECK_FD(g_tcpfd)) {
+    if (!CHECK_FD(g_srv_tcpfd)) {
         return 0;
     }
 
-    del_fd_from_srv_epoll(g_tcpfd);
+    del_fd_from_srv_epoll(g_srv_tcpfd);
 
-    return close(g_tcpfd);
+    return close(g_srv_tcpfd);
 }
 
 _Bool epoll_trigge_tcpfd(int fd)
 {
-    return (fd == g_tcpfd);
+    return (fd == g_srv_tcpfd);
 }
 
 int send_msg_by_tcp(lc_msg_package_t* msg_pack, int cli_fd)

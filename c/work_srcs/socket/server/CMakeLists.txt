@@ -11,6 +11,7 @@ endif()
 
 set_bin_compile_env()
 list(APPEND SRC_TOP_DIR_LIST ${CMAKE_CURRENT_SOURCE_DIR})
+list(APPEND LIBS_LIST -lsqlite3)
 
 foreach(TOP_DIR IN LISTS SRC_TOP_DIR_LIST)
     recurse_add_include_dir(${TOP_DIR})
@@ -18,6 +19,14 @@ foreach(TOP_DIR IN LISTS SRC_TOP_DIR_LIST)
 endforeach()
 
 add_executable(${PROJECT_NAME} ${SRC_LIST})
-target_link_libraries(${PROJECT_NAME}
-    -lsqlite3
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${INC_DIR_LIST}
+)
+
+target_link_directories(${PROJECT_NAME} PUBLIC
+    ${LIBS_DIRS_LIST}
+)
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    ${LIBS_LIST}
 )
