@@ -11,3 +11,4 @@ endif()
 
 add_subdirectory(${LC_PROJECT_DIR}/libsrcs)
 add_subdirectory(${LC_PROJECT_DIR}/server)
+add_subdirectory(${LC_PROJECT_DIR}/client)

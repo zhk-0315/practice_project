@@ -7,12 +7,21 @@ set(COMMON_DIR "${LC_PROJECT_DIR}/common")
 set(LIBSRC_DIR "${LC_PROJECT_DIR}/libsrcs")
 set(LIBRARY_OUTPUT_PATH "${LC_PROJECT_DIR}/libsrcs/lib")
 
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.27")
+    cmake_file_api(
+        QUERY
+        API_VERSION 1
+        CODEMODEL 2.3
+        TOOLCHAINS 1
+    )
+endif()
+
 # ####################################################
 macro(recurse_add_include_dir MACRO_TOP_DIR)
     file(GLOB LC_FILE_LIST ${MACRO_TOP_DIR}/*.h;${MACRO_TOP_DIR}/*.hpp)
 
     if(LC_FILE_LIST)
-        include_directories(${MACRO_TOP_DIR})
+        list(APPEND INC_DIR_LIST ${MACRO_TOP_DIR})
     endif()
 
     file(GLOB LC_ITEM_LIST ${MACRO_TOP_DIR}/*)
@@ -35,23 +44,6 @@ macro(recurse_src_list MACRO_TOP_DIR _SRC_LIST_VAR ALL_TYPE_LIST)
 endmacro()
 
 # ####################################################
-macro(set_bin_compile_env)
-    list(APPEND SRC_TOP_DIR_LIST ${COMMON_DIR})
-    recurse_add_include_dir(${LIBSRC_DIR})
-    add_compile_definitions(
-        UNSAFE_API
-    )
-    link_directories(
-        ${LIBRARY_OUTPUT_PATH}
-    )
-    link_libraries(
-        LClogout
-    )
-endmacro()
-
-macro(set_lib_compile_env)
-endmacro()
-
 macro(set_all_compile_env)
     add_compile_options(
         -g
@@ -60,4 +52,19 @@ macro(set_all_compile_env)
 
         # -Werror
     )
+endmacro()
+
+macro(set_bin_compile_env)
+    set_all_compile_env()
+    list(APPEND SRC_TOP_DIR_LIST ${COMMON_DIR})
+    recurse_add_include_dir(${LIBSRC_DIR})
+    add_compile_definitions(
+        UNSAFE_API
+    )
+    list(APPEND LIBS_DIRS_LIST ${LIBRARY_OUTPUT_PATH})
+    list(APPEND LIBS_LIST -lLClogout;-lpthread)
+endmacro()
+
+macro(set_lib_compile_env)
+    set_all_compile_env()
 endmacro()

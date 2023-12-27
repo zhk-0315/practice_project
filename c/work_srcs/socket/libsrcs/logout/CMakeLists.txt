@@ -10,3 +10,11 @@ foreach(TOP_DIR IN LISTS SRC_TOP_DIR_LIST)
 endforeach()
 
 add_library(${PROJECT_NAME} STATIC ${SRC_LIST})
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+    ${INC_DIR_LIST}
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    ${LIBS_LIST}
+)
