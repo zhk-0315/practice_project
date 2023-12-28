@@ -1,6 +1,7 @@
+#include "client_interface.h"
+#include "client_pool.h"
 #include "client_socket.h"
 #include "pre_modules.h"
-#include "client_pool.h"
 
 static void set_cli_pre_modules(void)
 {
@@ -22,9 +23,10 @@ static void unset_cli_pre_modules(void)
 
 static void init_all_cli_modules(void)
 {
-    create_or_switch_socket_type(UDP_LINK);
+    switch_socket_type();
 
     create_client_thread_pool();
+    create_cli_interface_thread();
 }
 
 static void release_all_cli_modules_resources(void)

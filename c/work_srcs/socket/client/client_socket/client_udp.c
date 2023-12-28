@@ -1,8 +1,10 @@
+#include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
 #include "pre_modules.h"
+#include "sock_msg.h"
 
 static int g_cli_udpfd = 0;
 
@@ -39,4 +41,24 @@ int try_destroy_client_udp(void)
     g_cli_udpfd = 0;
 
     return 0;
+}
+
+void* send_msg_by_udp(void* arg)
+{
+    ssize_t TXsize = 0;
+    lc_msg_package_t* _msgbuf = (lc_msg_package_t*)arg;
+    static struct sockaddr_in srv_addr = { 0 };
+
+    if (!srv_addr.sin_family) {
+        srv_addr.sin_family = AF_INET;
+        srv_addr.sin_addr.s_addr = inet_addr(g_server_addr);
+        srv_addr.sin_port = htons(g_server_udp_port);
+    }
+    TXsize = sendto(g_cli_udpfd, _msgbuf, sizeof(lc_msg_package_t), 0,
+        (struct sockaddr*)&srv_addr, g_addrlen);
+    if (TXsize != sizeof(lc_msg_package_t)) {
+        lc_err_logout("send msg by tcp error");
+    }
+
+    return NULL + 1;
 }

@@ -4,8 +4,8 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "logout.h"
 
@@ -36,6 +36,11 @@ const pre_modules_t* read_pre_modules_addr(void);
     do {                        \
         printf(fmt, ##args);    \
         fflush(stdout);         \
+    } while (0)
+
+#define lc_display_str(fmt, args...) \
+    do {                             \
+        lc_printf(fmt "\n", ##args); \
     } while (0)
 
 #define lc_scanf(fmt, args...)        \

@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 
 #include "pre_modules.h"
+#include "sock_msg.h"
 
 static int g_cli_tcpfd = 0;
 
@@ -50,4 +51,17 @@ int try_destroy_client_tcp(void)
     g_cli_tcpfd = 0;
 
     return 0;
+}
+
+void* send_msg_by_tcp(void* arg)
+{
+    ssize_t TXsize = 0;
+    lc_msg_package_t* _msgbuf = (lc_msg_package_t*)arg;
+
+    TXsize = send(g_cli_tcpfd, _msgbuf, sizeof(lc_msg_package_t), 0);
+    if (TXsize != sizeof(lc_msg_package_t)) {
+        lc_err_logout("send msg by tcp error");
+    }
+
+    return NULL + 1;
 }
