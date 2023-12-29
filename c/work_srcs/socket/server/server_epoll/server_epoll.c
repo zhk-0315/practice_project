@@ -106,6 +106,8 @@ static void* process_recv_cli_msg(void* arg)
 {
     int fd = *(int*)arg;
 
+    lc_debug_logout("enter");
+
     if (epoll_trigge_udpfd(fd)) {
         recv_udp_cli_msg(fd);
     } else {

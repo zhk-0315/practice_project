@@ -78,11 +78,12 @@ int send_msg_by_udp(lc_msg_package_t* msg_pack, struct sockaddr_in* _lcaddr)
 int recv_udp_cli_msg(int fd)
 {
     lc_msg_package_t msgbuf = { 0 };
+    lc_msg_package_t TXbuf = { 0 };
     struct sockaddr_in lcaddr = { 0 };
     ssize_t RXsize = 0;
 
     RXsize = recvfrom(fd, &msgbuf, sizeof(lc_msg_package_t), 0,
-        (struct sockaddr*)&lcaddr, (socklen_t*)&g_addrlen);
+        (struct sockaddr*)&lcaddr, &g_addrlen);
     if (RXsize < 0) {
         lc_err_logout("recvfrom msg error");
         return -1;
@@ -93,6 +94,10 @@ int recv_udp_cli_msg(int fd)
     if (msgbuf.msg.msg_type == SAVE_CLI_INFO) {
         add_udp_cli_to_database(msgbuf.msg.srcid, lcaddr.sin_addr.s_addr,
             lcaddr.sin_port);
+        TXbuf.msg.msg_type = SAVE_CLI_INFO;
+        TXbuf.msg.srcid = read_pre_modules_addr()->endid;
+        TXbuf.msg.destid = msgbuf.msg.srcid;
+        send_msg_by_udp(&TXbuf, &lcaddr);
     } else {
         en_srv_msg_queue(&msgbuf);
     }

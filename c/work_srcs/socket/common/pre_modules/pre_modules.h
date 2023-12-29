@@ -32,6 +32,12 @@ const pre_modules_t* read_pre_modules_addr(void);
         logout(&read_pre_modules_addr()->file_, fmt ": %s", ##args, lc_err_str); \
     } while (0)
 
+#ifdef LOCAL_DEBUG
+#define lc_debug_logout lc_logout
+#else
+#define lc_debug_logout(fmt, args...)
+#endif
+
 #define lc_printf(fmt, args...) \
     do {                        \
         printf(fmt, ##args);    \
@@ -51,7 +57,7 @@ const pre_modules_t* read_pre_modules_addr(void);
 
 #define CHECK_FD(macro_fd) (macro_fd > STDERR_FILENO)
 
-extern const socklen_t g_addrlen;
+extern socklen_t g_addrlen;
 extern const endid_t g_server_endid;
 extern const char* g_server_addr;
 extern const uint16_t g_server_udp_port;

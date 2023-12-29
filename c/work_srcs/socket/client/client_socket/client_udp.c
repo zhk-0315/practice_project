@@ -3,8 +3,11 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
+#include "client_pool.h"
+#include "client_socket.h"
 #include "pre_modules.h"
 #include "sock_msg.h"
+#include "client.h"
 
 static int g_cli_udpfd = 0;
 
@@ -37,6 +40,10 @@ int try_destroy_client_udp(void)
         return 0;
     }
 
+    pthread_mutex_lock(&get_cli_flag()->mutex_);
+    get_cli_flag()->flag.init_cli_info = 0;
+    pthread_mutex_unlock(&get_cli_flag()->mutex_);
+
     close(g_cli_udpfd);
     g_cli_udpfd = 0;
 
@@ -57,7 +64,31 @@ void* send_msg_by_udp(void* arg)
     TXsize = sendto(g_cli_udpfd, _msgbuf, sizeof(lc_msg_package_t), 0,
         (struct sockaddr*)&srv_addr, g_addrlen);
     if (TXsize != sizeof(lc_msg_package_t)) {
-        lc_err_logout("send msg by tcp error");
+        lc_err_logout("send msg by udp error");
+    }
+
+    return NULL + 1;
+}
+
+void* recv_msg_by_udp(void* arg)
+{
+    lc_msg_package_t msgbuf = { 0 };
+    ssize_t RXsize = 0;
+
+    RXsize = recvfrom(g_cli_udpfd, &msgbuf, sizeof(lc_msg_package_t), 0,
+        NULL, &g_addrlen);
+    if (RXsize < 0) {
+        lc_err_logout("recv udp msg error");
+        return NULL;
+    } else if (RXsize == 0) {
+        return NULL;
+    }
+
+    if (msgbuf.msg.msg_type == SAVE_CLI_INFO) {
+        add_task_to_client_pool_use_arg_mem(complete_init_client_info, NULL);
+    } else {
+        add_task_to_client_pool_release_arg_mem(dispaly_msg_package,
+            &msgbuf, sizeof(lc_msg_package_t));
     }
 
     return NULL + 1;

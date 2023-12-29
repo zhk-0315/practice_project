@@ -40,13 +40,14 @@ void __logout(const log_file_t* file, const char* fmt, ...)
         return;
     }
 
-    if (g_max_log_size > 0 && ftell(fp) >= g_max_log_size) {
-        g_clear_log_file = 1;
+    if (g_clear_log_file
+        || (g_max_log_size > 0 && ftell(fp) >= g_max_log_size)) {
+        printf("clear log file=============");
+        freopen(file->path, "w+", fp);
+        g_clear_log_file = 0;
     }
 
-    if (g_clear_log_file) {
-        freopen(file->path, "w+", fp);
-    }
+    fflush(stdout);
 
     output_time_stamp(fp);
 

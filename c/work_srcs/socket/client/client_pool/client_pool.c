@@ -17,7 +17,6 @@ void create_client_thread_pool(void)
 void destroy_client_thread_pool(void)
 {
     if (g_cli_thread_pool) {
-        free(g_cli_thread_pool);
     }
 }
 

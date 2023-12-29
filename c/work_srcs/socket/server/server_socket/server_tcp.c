@@ -83,6 +83,7 @@ int send_msg_by_tcp(lc_msg_package_t* msg_pack, int cli_fd)
 int recv_tcp_cli_msg(int fd)
 {
     lc_msg_package_t msgbuf = { 0 };
+    lc_msg_package_t TXbuf = { 0 };
     ssize_t RXsize = 0;
 
     RXsize = recv(fd, &msgbuf, sizeof(lc_msg_package_t), 0);
@@ -98,6 +99,10 @@ int recv_tcp_cli_msg(int fd)
 
     if (msgbuf.msg.msg_type == SAVE_CLI_INFO) {
         add_tcp_cli_to_database(msgbuf.msg.srcid, fd);
+        TXbuf.msg.msg_type = SAVE_CLI_INFO;
+        TXbuf.msg.srcid = read_pre_modules_addr()->endid;
+        TXbuf.msg.destid = msgbuf.msg.srcid;
+        send_msg_by_tcp(&TXbuf, fd);
     } else {
         en_srv_msg_queue(&msgbuf);
     }

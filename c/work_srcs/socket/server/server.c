@@ -48,9 +48,12 @@ static void release_all_srv_modules_resources(void)
 
 // #define LC_TEST_POOL
 #ifdef LC_TEST_POOL
+static int aaaa = 0;
 static void* test_thread_pool(void* arg)
 {
-    printf("test thread pool\n");
+    int num = *(int*)arg;
+
+    printf("test thread pool %d\n", num);
     fflush(stdout);
 
     return NULL + 1;
@@ -65,10 +68,11 @@ int main(int argc, const char* argv[])
 
     while (1) {
 #ifdef LC_TEST_POOL
-        add_task_to_server_pool_release_arg_mem(test_thread_pool, NULL, 0);
+        add_task_to_server_pool_release_arg_mem(test_thread_pool, &aaaa, sizeof(aaaa));
         usleep(200000);
-#endif
+#else
         sleep(5);
+#endif
     }
 
     release_all_srv_modules_resources();

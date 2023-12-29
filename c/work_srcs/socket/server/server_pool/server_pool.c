@@ -17,7 +17,6 @@ void create_server_thread_pool(void)
 void destroy_server_thread_pool(void)
 {
     if (g_srv_thread_pool) {
-        free(g_srv_thread_pool);
     }
 }
 

@@ -50,7 +50,7 @@ macro(set_bin_compile_env)
     list(APPEND SRC_TOP_DIR_LIST ${COMMON_DIR})
     recurse_add_include_dir(${LIBSRC_DIR})
     add_compile_definitions(
-        UNSAFE_API
+        UNSAFE_API;LOCAL_DEBUG
     )
     list(APPEND LIBS_DIRS_LIST ${LIBRARY_OUTPUT_PATH})
     list(APPEND LIBS_LIST -lLClogout;-lpthread)

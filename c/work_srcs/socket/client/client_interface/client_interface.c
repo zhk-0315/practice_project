@@ -1,4 +1,5 @@
 #include <pthread.h>
+#include <stdio.h>
 
 #include "client_interface.h"
 #include "client_socket.h"
@@ -27,7 +28,7 @@ static void* cli_interface_thread(void* arg)
     lc_pthread_setname_np(tid, "CliUI");
 
     while (1) {
-        lc_display_str("欢迎使用client! %s", display_cur_socket_type());
+        lc_display_str("欢迎使用client! %s, endid=%d", display_cur_socket_type(), read_pre_modules_addr()->endid);
         for (i = 0; i < info_cnt; i++) {
             lc_display_str("%d: %s", i, interface_info[i].info);
         }

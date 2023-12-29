@@ -24,6 +24,7 @@ static lc_sql_t lc_sqls = {
 int create_cli_sql_database(void)
 {
     int iret = 0;
+    char sql_fpath[256] = { 0 };
     char sql_err[256] = { 0 };
     char sql_cmd[256] = { 0 };
 
@@ -31,7 +32,14 @@ int create_cli_sql_database(void)
         return 0;
     }
 
-    iret = sqlite3_open(NULL, &lc_sqls.sql);
+    getcwd(sql_fpath, sizeof(sql_fpath));
+    strcat(sql_fpath, "/srv_sql.db");
+
+    if (!access(sql_fpath, F_OK)) {
+        remove(sql_fpath);
+    }
+
+    iret = sqlite3_open(sql_fpath, &lc_sqls.sql);
     if (iret != SQLITE_OK) {
         lc_logout("sqlite3_open database error");
     }
@@ -80,7 +88,7 @@ int add_tcp_cli_to_database(endid_t endid, int fd)
         lc_logout("INSERT TO CliInfo error: %s", sql_err);
     }
     if (iret == SQLITE_CONSTRAINT) {
-        sprintf(sql_cmd, "UPDATE CliInfo SET fd = %d,addr = NULL,port = NULL "
+        sprintf(sql_cmd, "UPDATE CliInfo SET fd=%d,ipaddr=null,port=null "
                          "WHERE endid == %d;",
             fd, endid);
         iret = sqlite3_exec(lc_sqls.sql, sql_cmd, NULL, NULL, (char**)&sql_err);
@@ -125,10 +133,13 @@ int add_udp_cli_to_database(endid_t endid, uint32_t ipaddr, uint16_t port)
         create_cli_sql_database();
     }
 
+    lc_debug_logout("endid(%d),ipaddr(%u),port(%u)", endid, ipaddr, port);
+
     pthread_mutex_lock(&lc_sqls.mutex_);
     sprintf(sql_cmd, "INSERT INTO CliInfo VALUES (%d, NULL, %u, %u);",
         endid, ipaddr, port);
     iret = sqlite3_exec(lc_sqls.sql, sql_cmd, NULL, NULL, (char**)&sql_err);
+    lc_debug_logout("iret= %d", iret);
     if (iret != SQLITE_OK) {
         lc_logout("INSERT TO CliInfo error: %s", sql_err);
     }
@@ -137,6 +148,7 @@ int add_udp_cli_to_database(endid_t endid, uint32_t ipaddr, uint16_t port)
                          "WHERE endid == %d;",
             ipaddr, port, endid);
         iret = sqlite3_exec(lc_sqls.sql, sql_cmd, NULL, NULL, (char**)&sql_err);
+        lc_debug_logout("iret= %d", iret);
         if (iret != SQLITE_OK) {
             lc_logout("UPDATE CliInfo error: %s", sql_err);
         }

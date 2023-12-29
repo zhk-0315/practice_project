@@ -14,6 +14,8 @@ int switch_socket_type(void);
 char* display_cur_socket_type(void);
 int send_msg_to_server(void);
 int send_msg_to_other_cli(void);
+void* complete_init_client_info(void* arg);
+int create_sock_msg_recv_thread(void);
 
 static inline void destroy_socket(void)
 {
