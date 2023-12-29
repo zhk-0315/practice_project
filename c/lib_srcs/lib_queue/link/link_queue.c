@@ -79,7 +79,7 @@ int DeLinkQueue(LinkQueue* linkQueue, void* data, size_t dataSize)
     }
 
     if (linkQueue->front == linkQueue->rear) {
-        //QueueDbgout("link queue empty!\n");
+        // QueueDbgout("link queue empty!\n");
         return QUEUE_EMPTY;
     }
 

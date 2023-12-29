@@ -3,11 +3,11 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 
+#include "client.h"
 #include "client_pool.h"
 #include "client_socket.h"
 #include "pre_modules.h"
 #include "sock_msg.h"
-#include "client.h"
 
 static int g_cli_udpfd = 0;
 
