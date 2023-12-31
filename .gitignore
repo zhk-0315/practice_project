@@ -1,6 +1,7 @@
 build/
 .vscode/
 .clang-format
+a.out
 *.o
 *.so
 *.a
